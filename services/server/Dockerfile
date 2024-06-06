@@ -1,10 +1,11 @@
 FROM node:16.20-alpine3.18
 
-# ENV NODE_OPTIONS="--openssl-legacy-provider"
+
+WORKDIR /opt/server
 COPY . .
 
 RUN npm install 
 
-EXPOSE 3000
+EXPOSE 5050
 
 ENTRYPOINT ["npm", "start"]

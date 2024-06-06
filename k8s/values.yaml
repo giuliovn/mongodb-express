@@ -1,0 +1,4 @@
+mongoLabel: mongodb
+nginxLabel: nginx
+appLabel: node-app
+serverLabel: node-server

@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.appLabel }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.appLabel }}
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.appLabel }}
+    spec:
+      containers:
+      - name: {{ .Values.appLabel }}
+        image: giuliovn/node-app:latest
+        ports:
+        - containerPort: 3000
+        volumeMounts:
+          - name: config
+            mountPath: /opt/app/src/config.js
+            subPath: config.js
+            readOnly: true
+      volumes:
+      - name: config
+        configMap:
+          name: config
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config
+data: 
+  config.js: |
+    export const baseUrl = "https://{{ .Values.serverLabel }}.default.svc.cluster.local";
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.appLabel }}
+  labels:
+    app: {{ .Values.appLabel }}
+spec:
+  type: ClusterIP
+  selector:
+    app: {{ .Values.appLabel }}
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Values.appLabel }}
+            port: 
+              number: 3000
