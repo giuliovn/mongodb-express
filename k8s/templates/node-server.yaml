@@ -17,6 +17,7 @@ spec:
         image: giuliovn/node-server:latest
         ports:
         - containerPort: 5050
+          name: server-port
         env:
         - name: DB_USER
           valueFrom:
@@ -43,6 +44,7 @@ spec:
   selector:
     app: node-server
   ports:
-    - protocol: TCP
-      port: 5050
-      targetPort: 5050
+  - name: server
+    protocol: TCP
+    port: 5050
+    targetPort: server-port

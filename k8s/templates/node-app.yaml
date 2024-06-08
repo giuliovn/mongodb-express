@@ -17,24 +17,17 @@ spec:
         image: giuliovn/node-app:latest
         ports:
         - containerPort: 3000
-        volumeMounts:
-          - name: config
-            mountPath: /opt/app/src/config.js
-            subPath: config.js
-            readOnly: true
-      volumes:
-      - name: config
-        configMap:
-          name: config
----
-
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: config
-data: 
-  config.js: |
-    export const baseUrl = "https://{{ .Values.serverLabel }}.default.svc.cluster.local";
+          name: app-port
+        # this is a workaround because using the service name leads to the error
+        # Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at http://node-server.default.svc.cluster.local:5050/posts/latest.
+        # I could get it to work only with the IP, and I wasn't able to make config.js read env variables
+        # if the pod is created before the service the env variable won't be populated, hence the loop
+        # see: https://kubernetes.io/docs/concepts/services-networking/service/#environment-variables
+        # another significant drawback is that if the server IP changes the frontend need to be redeployed
+        command: ["sh"]
+        args:
+        - '-c'
+        - 'export RETRIES=8; while [ -z "${NODE_SERVER_SERVICE_HOST}" ]; do [ ${RETRIES} -gt 0 ] || exit 1; sleep 1; echo "Wait for service to come up"; RETRIES=$((RETRIES-1)); done; echo "export const baseUrl = \"http://${NODE_SERVER_SERVICE_HOST}:${NODE_SERVER_SERVICE_PORT}\"" > src/config.js; npm start'
 ---
 
 apiVersion: v1
@@ -48,18 +41,20 @@ spec:
   selector:
     app: {{ .Values.appLabel }}
   ports:
-    - protocol: TCP
-      port: 3000
-      targetPort: 3000
+  - name: app
+    protocol: TCP
+    port: 3000
+    targetPort: app-port
 ---
 
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: ingress
+  name: frontend-ingress
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
+  ingressClassName: nginx
   rules:
   - http:
       paths:

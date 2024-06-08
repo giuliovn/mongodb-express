@@ -12,5 +12,6 @@ try {
 }
 
 let db = conn.db("sample_training");
+console.log("Successfully connected to MongoDB.");
 
 export default db;

@@ -11,9 +11,11 @@ sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 ```
 3. `minikube start`
 4. `minikube addons enable ingress`
-5. Simulate an external secret:
+5. Simulate an external secret (with whatever credentials):
 ```bash
 kubectl create secret generic cred --from-literal=user=mario --from-literal=password=mario
 ```
 6. `helm install cluster ./k8s`
 7. Get the minicluster IP with `minikube ip` and open in browser.
+8. `minikube tunnel`
+9. Access the IP from the `minikube ip` command from the browser
