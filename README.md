@@ -16,6 +16,14 @@ sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 kubectl create secret generic cred --from-literal=user=mario --from-literal=password=mario
 ```
 6. `helm install cluster ./k8s`
+7. Wait until all services are up and running the load-data job completed (`kubectl get po -w`)
 7. Get the minicluster IP with `minikube ip` and open in browser.
 8. `minikube tunnel`
 9. Access the IP from the `minikube ip` command from the browser
+
+## CLIENT JOB
+For simplicity most of the parameters are hardcoded
+1. `cd client_job`
+2. (Optional) make and activate virtual environment: `python3 -m venv venv; source venv/bin/activate`
+3. `pip install -r requirements.txt`
+4. `python request.py http://$(minikube ip)`
